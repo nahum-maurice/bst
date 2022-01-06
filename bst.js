@@ -69,7 +69,7 @@ class BinarySearchTree {
           // Starting from the given node, recursively go down the tree
           // to the right if the key is greater than the node's value
           // updating the right child node.
-          node.left = this.removeNode(node.right, key);
+          node.right = this.removeNode(node.right, key);
           return node;
       } else {
           // Got the point where the are equal
