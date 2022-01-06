@@ -38,21 +38,79 @@ const visualize = (tree) => {
     .attr("width", "1000")
     .append("g")
     .attr("transform", "translate(0, 20)");
-  
+
   let treemap = d3.tree().size([400, 400]);
   let root = d3.hierarchy(tree.root, (d) => {
-      d.children = [];
-      if (d.left) d.children.push(d.left);
-      if (d.rigth) d.children.push(d.right);
-      return d.children;
-  })
+    d.children = [];
+    if (d.left) d.children.push(d.left);
+    if (d.rigth) d.children.push(d.right);
+    return d.children;
+  });
 
   // Starting points of the tree (root)
-  root.x0 = 400/2 // choosing the middle of the treemap
-  root.y0 = 0 // choosing the top
+  root.x0 = 400 / 2; // choosing the middle of the treemap
+  root.y0 = 0; // choosing the top
 
-  // I should now create an update function... 
-  // In the next 45 minutes
+  update({ root, treemap, svg });
+};
+
+const update = ({ root, treemap, svg }) => {
+  let treeData = treemap(root); // lays out the root's hierarchy
+  let nodes = treeData.descendants(); // array of descendant nodes
+  let links = treeData.descendants().slice(1);
+  let i = 0; // will serve as id for nodes
+
+  nodes.forEach((d) => (d.y = d.depth * 100));
+
+  let node = svg.selectAll("g.node").data(nodes, (d) => {
+    if (!d.id) i.id = ++i;
+  });
+
+  // Adding a new node element as a 'g' element (with the onclick
+  // function that removes it from the tree).
+  let nodeEnter = node
+    .enter()
+    .append("g")
+    .attr("class", "node")
+    .attr("transform", () => "translate(" + root.x0 + "," + root.y0 + ")")
+    .on("click", (node) => {
+      tree.remove(node.value);
+      d3.selectAll("svg").remove();
+      visualize(tree);
+    });
+
+  // Adding a the circle (as required, the elements should be in a
+  // circle).
+  nodeEnter
+    .append("circle")
+    .attr("class", "node")
+    .attr("r", (d) => d.value)
+    .style("fill", "#fff")
+    .style("stroke", "black");
+
+  // Adding the text inside of the circle
+  nodeEnter
+    .append("text")
+    .attr("dy", ".35em")
+    .attr("x", ({ data: { value } }) => (String(value).length > 1 ? -7 : -3))
+    .text(({ data }) => data.value)
+    .style("cursor", "pointer")
+    .style("font", "12px arial");
+
+  let nodeUpdate = nodeEnter.merge(node);
+
+  nodeUpdate
+    .transition()
+    .duration(750)
+    .attr("transform", (d) => "translate(" + d.x + "," + d.y + ")");
+
+  nodeUpdate
+    .select("circle.node")
+    .attr("r", 10)
+    .style("fill", (d) => (d._children ? "ligthsteelblue" : "#fff"))
+    .attr("cursor", "pointer");
+
+  
 };
 
 const randomNumber = () => {
