@@ -9,7 +9,7 @@ class Node {
     this.value = value;
     this.parent = null;
     this.left = null;
-    this.right = right;
+    this.right = null;
   }
 }
 
@@ -37,7 +37,7 @@ class BinarySearchTree {
       // condition that the value inserted is less than the
       // current root's
       if (localRoot.left != null) {
-        this.insertNode(value, root.left);
+        this.insertNode(value, localRoot.left);
       } else {
         localRoot.left = node;
         node.parent = localRoot;
@@ -47,7 +47,7 @@ class BinarySearchTree {
       // when get there insert it in the right place under the
       // condition that the value is greater than the current root's
       if (localRoot.right != null) {
-        this.insertNode(value, root.right);
+        this.insertNode(value, localRoot.right);
       } else {
         localRoot.right = node;
         node.parent = localRoot;

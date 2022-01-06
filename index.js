@@ -7,9 +7,11 @@
 //
 // An external library : d3 is used for the rendering and animation
 
-import BinarySearchTree from "./bst";
+import BinarySearchTree from "./bst.js";
 
-let tree = new BinarySearchTree(randomNumber());
+let numbers = [25, 10];
+let tree = new BinarySearchTree(15);
+numbers.forEach((n) => tree.insert(n));
 
 // Showing the tree with the root element when the page is loaded
 window.addEventListener("load", () => visualize(tree));
@@ -43,7 +45,7 @@ const visualize = (tree) => {
   let root = d3.hierarchy(tree.root, (d) => {
     d.children = [];
     if (d.left) d.children.push(d.left);
-    if (d.rigth) d.children.push(d.right);
+    if (d.right) d.children.push(d.right);
     return d.children;
   });
 
@@ -63,7 +65,7 @@ const update = ({ root, treemap, svg }) => {
   nodes.forEach((d) => (d.y = d.depth * 100));
 
   let node = svg.selectAll("g.node").data(nodes, (d) => {
-    if (!d.id) i.id = ++i;
+    if (!d.id) d.id = ++i;
   });
 
   // Adding a new node element as a 'g' element (with the onclick
@@ -95,7 +97,9 @@ const update = ({ root, treemap, svg }) => {
     .attr("x", ({ data: { value } }) => (String(value).length > 1 ? -7 : -3))
     .text(({ data }) => data.value)
     .style("cursor", "pointer")
-    .style("font", "12px arial");
+    .style("font", "11px arial");
+
+  // Updating the nodes
 
   let nodeUpdate = nodeEnter.merge(node);
 
@@ -110,11 +114,42 @@ const update = ({ root, treemap, svg }) => {
     .style("fill", (d) => (d._children ? "ligthsteelblue" : "#fff"))
     .attr("cursor", "pointer");
 
-  
+  // The links joining the nodes
+
+  let link = svg.selectAll("path.link").data(links, (d) => d.id);
+  let linkEnter = link
+    .enter()
+    .insert("path", "g")
+    .style("fill", "none")
+    .style("stroke", "gray")
+    .attr("class", "link")
+    .attr("d", () => {
+      let o = { x: root.x0, y: root.y0 };
+      return diagonal(o, o);
+    });
+
+  // Updating links
+
+  let linkUpdate = linkEnter.merge(link);
+
+  linkUpdate
+    .transition()
+    .duration(750)
+    .attr("d", (d) => diagonal(d, d.parent));
+
+  nodes.forEach((d) => {
+    d.x0 = d.x;
+    d.y0 = d.y;
+  });
+
+  function diagonal(s, d) {
+    return `M ${s.x} ${s.y} C ${(s.x + d.x) / 2} ${s.y}, ${(s.x + d.x) / 2} ${d.y}, ${d.x} ${d.y}`;
+  };
 };
 
-const randomNumber = () => {
-  const [min, max] = [-100, 100];
-  const num = Math.floor(Math.random() * (max - min)) + min;
-  return num;
+
+function randomNumber() {
+    const [min, max] = [-100, 100];
+    const num = Math.floor(Math.random() * (max - min)) + min;
+    return num;
 };
